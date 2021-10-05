@@ -8,6 +8,7 @@ import numpy as np
 
 if __name__ == '__main__':
 
+    # might need to change VideoCapture(n) to a different number for your computer
     vid = cv2.VideoCapture(1)
     ret, frame = vid.read()
 
