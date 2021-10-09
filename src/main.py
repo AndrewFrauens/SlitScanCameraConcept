@@ -1,53 +1,78 @@
+import sys
+
 import cv2 as cv2
-import numpy as np
+
+import argparse
+import os
+
+import CameraSetup
+import SlitScanParameterSlider as SSPS
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Experiment with some slit scan camera concepts")
 
-    # might need to change VideoCapture(n) to a different number for your computer
-    vid = cv2.VideoCapture(1)
-    ret, frame = vid.read()
+    parser.add_argument('--camera', type=str, choices=('piv2', 'web'),
+                        default='piv2',
+                        help='select what camera you are using')
 
-    # change this to change apparent speed
-    # current method leaves jarring edges, could potentially find a way to smooth, but it'd be more complicated
-    cols_to_capture = 2
+    parser.add_argument('--mode', type=int, default=1, choices=range(0, 8),
+                        help='select a mode.  For webcam you may need to try different numbers including zero.  For Pi v 2 camera, a higher mode should be lower res but higher fps, don\'t try zero for pi though')
 
-    im_width = frame.shape[1]
-    # start capturing from here
-    capture_col = im_width // 2
-    move_capture_window = True
+    parser.add_argument('--outputVid', type=str, default="./slit_scan_video.avi",
+                        help='path to save video of attempt to. will delete whatever it is pointed at')
 
-    # start inputting to here
-    destination_col = 0
+    args = None
+    try:
+        args = parser.parse_args()
+    except:
+        parser.print_help()
+        sys.exit(1)
 
-    # store the constructed collection of pixels
-    collection = np.zeros(frame.shape).astype(np.uint8)
+    camera_selection = args.camera
+    mode = args.mode
+    vid_path = args.outputVid
 
-    while ret:
-        ret, frame = vid.read()
+    gui = None
 
-        # had a hard time using the start:end notation across the edge of the frame so doing col by col instead
-        for i in range(cols_to_capture):
-            collection[:, (destination_col + i) % im_width] = frame[:, (capture_col + i) % im_width]
+    outVid = None
 
-        if move_capture_window:
-            destination_col += cols_to_capture
-            destination_col %= im_width
+    for frame in CameraSetup.frame_generator(camera_selection, mode):
 
-        capture_col += cols_to_capture
-        capture_col %= im_width
+        if gui is None:
+            goal_shape = frame.shape
+            # arbitrary multiplier on width, could turn into CLI input
+            goal_shape = (frame.shape[0], int(frame.shape[1] * 2.31), frame.shape[2])
 
-        # the +_1/-1 here are to ensure that we are surrounding the captured region rather than writing on the edges of the captured region
-        frame = cv2.line(frame, (capture_col - 1, 0), (capture_col - 1, frame.shape[0]), (0, 0, 255))
-        frame = cv2.line(frame, ((capture_col + cols_to_capture + 1) % im_width, 0),
-                         ((capture_col + cols_to_capture + 1) % im_width, frame.shape[0]), (0, 0, 255))
+            source_shape = frame.shape
 
-        cv2.imshow('frame', frame)
-        # might be able to do something here if we want to maintain the oldest
-        # pixels on the left and the newest on the right for every single time it's shown in every time step
-        cv2.imshow('colelction', collection)
+            window_name = "Experiment -- press (q) or (ESC) to quit"
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            ret = False
+            gui = SSPS.SlitScanParameterSlider(goal_shape, source_shape, window_name)
+            gui.start_viz()
 
-    vid.release()
+            if vid_path is not None:
+
+                try:
+                    os.remove(vid_path)
+                except:
+                    pass
+
+                processed_img = gui.update_image(frame)
+
+                # todo: find a way to match the fps to the frame generator
+                codec = 'XVID'
+                outVid = cv2.VideoWriter(vid_path, cv2.VideoWriter_fourcc(*codec), 30, (processed_img.shape[1], processed_img.shape[0]))
+
+        processed_img = gui.update_image(frame)
+        if outVid is not None:
+            outVid.write(processed_img)
+
+        key_pressed = cv2.waitKey(1)
+        # if Q or ESC are pressed, then quit
+        if key_pressed == ord('q') or key_pressed == 27:
+            break
+
+    if outVid is not None:
+        # This probably happens after end of scope anyway, but need to check documentation
+        outVid.release()
     cv2.destroyAllWindows()
