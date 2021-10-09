@@ -19,7 +19,7 @@ if __name__ == '__main__':
                         help='select a mode.  For webcam you may need to try different numbers including zero.  For Pi v 2 camera, a higher mode should be lower res but higher fps, don\'t try zero for pi though')
 
     parser.add_argument('--outputVid', type=str, default="./slit_scan_video.avi",
-                        help='path to save video of attempt to. will delete whatever it is pointed at')
+                        help='path to save video of attempt to. will delete whatever it is pointed at. Tested with .avi')
 
     args = None
     try:
