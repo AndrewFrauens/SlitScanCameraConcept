@@ -38,7 +38,7 @@ def get_VideoCapture_settings(camera_selection: str, mode: int = 1):
     elif mode == 7:
         capture_width = 640
         capture_height = 480
-        framerate = 90
+        framerate = 120
     else:
         raise ValueError(f'Unexpected mode of {mode} for piv2')
 
