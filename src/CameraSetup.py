@@ -61,12 +61,14 @@ def get_VideoCapture_settings(camera_selection: str, mode: int = 1):
 
 def get_camera(camera_selection: str, mode: int):
     camSettings = get_VideoCapture_settings(camera_selection, mode)
-    return cv2.VideoCapture(camSettings)
+    return cv2.VideoCapture(camSettings, cv2.CAP_DSHOW)
 
 
 def frame_generator(*args):
     # create video_capture either based on camera_selection and mode or on an already created string
-    video_capture = get_camera(*args) if len(args) == 2 else cv2.VideoCapture(*args)
+    video_capture = get_camera(*args) if len(args) == 2 else cv2.VideoCapture(*args, cv2.CAP_DSHOW) if len(args) == 1 else None
+    if video_capture == None:
+        raise ValueError(f'Something in the arguments "{args}" is incorrect')
 
     ret = True
 
