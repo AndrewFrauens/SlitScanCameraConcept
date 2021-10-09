@@ -15,7 +15,7 @@ optional arguments:
                         try zero for pi though
   --outputVid OUTPUTVID
                         path to save video of attempt to. will delete whatever
-                        it is pointed at
+                        it is pointed at.  Tested with .avi
 ```
 
 
