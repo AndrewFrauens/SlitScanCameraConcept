@@ -11,7 +11,7 @@ class SlitScanParameterSlider:
 
         self.step_size = 2
         self.step_size_name = "step size"
-        self.step_size_max_value = source_shape[1]-1
+        self.step_size_max_value = source_shape[1]
         self.step_through_source = 1  # 1 is truthy
         self.step_through_source_name = "step through source"
         self.step_through_source_max_value = 1
