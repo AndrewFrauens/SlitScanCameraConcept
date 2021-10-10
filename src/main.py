@@ -21,12 +21,7 @@ if __name__ == '__main__':
     parser.add_argument('--outputVid', type=str, default="./slit_scan_video.avi",
                         help='path to save video of attempt to. will delete whatever it is pointed at. Tested with .avi')
 
-    args = None
-    try:
-        args = parser.parse_args()
-    except:
-        parser.print_help()
-        sys.exit(1)
+    args = parser.parse_args()
 
     camera_selection = args.camera
     mode = args.mode
@@ -39,7 +34,6 @@ if __name__ == '__main__':
     for frame in CameraSetup.frame_generator(camera_selection, mode):
 
         if gui is None:
-            goal_shape = frame.shape
             # arbitrary multiplier on width, could turn into CLI input
             goal_shape = (frame.shape[0], int(frame.shape[1] * 2.31), frame.shape[2])
 
